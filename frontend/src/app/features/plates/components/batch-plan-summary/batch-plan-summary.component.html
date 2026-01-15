@@ -1,0 +1,65 @@
+<div class="batch-plan-summary" *ngIf="operations.length > 0">
+  <div class="summary-header">
+    <h3>Batch Plan Summary</h3>
+    <button class="btn btn-danger-outline btn-sm" (click)="onClearAll()">Clear All</button>
+  </div>
+
+  <div class="summary-stats">
+    <div class="stat-item">
+      <span class="stat-label">Operations:</span>
+      <span class="stat-value">{{ totalOperations }}</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-label">Wells:</span>
+      <span class="stat-value">{{ uniqueWells }}</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-label">Total Volume:</span>
+      <span class="stat-value">{{ totalVolume.toFixed(1) }} μL</span>
+    </div>
+  </div>
+
+  <div class="operations-list">
+    <div class="operations-header">
+      <span class="col-well">Well</span>
+      <span class="col-reagent">Reagent</span>
+      <span class="col-volume">Volume</span>
+      <span class="col-status">Status</span>
+      <span class="col-actions">Actions</span>
+    </div>
+    
+    <div 
+      class="operation-item" 
+      *ngFor="let operation of operations; let i = index"
+      [class.executing]="operation.status === PlannedOperationStatus.EXECUTING"
+      [class.completed]="operation.status === PlannedOperationStatus.COMPLETED"
+      [class.failed]="operation.status === PlannedOperationStatus.FAILED">
+      
+      <span class="col-well">{{ operation.wellPosition }}</span>
+      <span class="col-reagent">{{ operation.reagentName }}</span>
+      <span class="col-volume">{{ operation.volume.toFixed(1) }} μL</span>
+      <span class="col-status" [ngClass]="getStatusClass(operation.status)">
+        <span class="status-icon">{{ getStatusIcon(operation.status) }}</span>
+        <span class="status-text">{{ operation.status }}</span>
+      </span>
+      <span class="col-actions">
+        <button 
+          class="btn-remove" 
+          (click)="onRemove(operation.id)"
+          [disabled]="operation.status !== PlannedOperationStatus.PLANNED"
+          title="Remove operation">
+          ✕
+        </button>
+      </span>
+
+      <div class="error-message" *ngIf="operation.error">
+        <span class="error-icon">⚠</span>
+        <span>{{ operation.error }}</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="no-operations" *ngIf="operations.length === 0">
+  <p>No operations planned yet. Click on wells to add operations to the batch.</p>
+</div>

@@ -32,12 +32,30 @@
 }
 
 .content {
-  display: grid;
-  grid-template-columns: 350px 1fr;
+  display: flex;
+  flex-direction: column;
   gap: 20px;
 }
 
-.info-panel,
+.info-panel {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+}
+
+.batch-actions {
+  display: flex;
+  justify-content: center;
+  padding: 20px 0;
+}
+
+.btn-large {
+  padding: 15px 40px;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
 .grid-panel {
   background: white;
   border-radius: 8px;

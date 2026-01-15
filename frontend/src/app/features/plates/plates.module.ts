@@ -7,6 +7,8 @@ import { PlateListComponent } from './components/plate-list/plate-list.component
 import { PlateDetailComponent } from './components/plate-detail/plate-detail.component';
 import { WellGridComponent } from './components/well-grid/well-grid.component';
 import { DispenseDialogComponent } from './components/dispense-dialog/dispense-dialog.component';
+import { BatchPlanSummaryComponent } from './components/batch-plan-summary/batch-plan-summary.component';
+import { BatchExecutionStatusComponent } from './components/batch-execution-status/batch-execution-status.component';
 
 const routes: Routes = [
   { path: '', component: PlateListComponent },
@@ -18,7 +20,9 @@ const routes: Routes = [
     PlateListComponent,
     PlateDetailComponent,
     WellGridComponent,
-    DispenseDialogComponent
+    DispenseDialogComponent,
+    BatchPlanSummaryComponent,
+    BatchExecutionStatusComponent
   ],
   imports: [
     CommonModule,
