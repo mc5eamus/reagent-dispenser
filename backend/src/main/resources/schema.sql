@@ -1,5 +1,6 @@
 -- Drop tables if they exist
 DROP TABLE IF EXISTS dispense_operations;
+DROP TABLE IF EXISTS dispense_batches;
 DROP TABLE IF EXISTS wells;
 DROP TABLE IF EXISTS plates;
 DROP TABLE IF EXISTS reagents;
@@ -35,12 +36,24 @@ CREATE TABLE reagents (
     unit VARCHAR(10) NOT NULL DEFAULT 'μL'
 );
 
+-- Create dispense_batches table
+CREATE TABLE dispense_batches (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    plate_id BIGINT NOT NULL,
+    status VARCHAR(50) NOT NULL DEFAULT 'PLANNED',
+    created_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    execution_started_date TIMESTAMP,
+    completed_date TIMESTAMP,
+    FOREIGN KEY (plate_id) REFERENCES plates(id)
+);
+
 -- Create dispense_operations table
 CREATE TABLE dispense_operations (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     plate_id BIGINT NOT NULL,
     well_id BIGINT NOT NULL,
     reagent_id BIGINT NOT NULL,
+    batch_id BIGINT,
     volume_dispensed DOUBLE NOT NULL,
     status VARCHAR(50) NOT NULL DEFAULT 'PENDING',
     created_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -48,7 +61,8 @@ CREATE TABLE dispense_operations (
     error_message VARCHAR(1000),
     FOREIGN KEY (plate_id) REFERENCES plates(id),
     FOREIGN KEY (well_id) REFERENCES wells(id),
-    FOREIGN KEY (reagent_id) REFERENCES reagents(id)
+    FOREIGN KEY (reagent_id) REFERENCES reagents(id),
+    FOREIGN KEY (batch_id) REFERENCES dispense_batches(id)
 );
 
 -- Create indexes
@@ -56,3 +70,6 @@ CREATE INDEX idx_plate_barcode ON plates(barcode);
 CREATE INDEX idx_well_plate ON wells(plate_id);
 CREATE INDEX idx_operation_status ON dispense_operations(status);
 CREATE INDEX idx_operation_plate ON dispense_operations(plate_id);
+CREATE INDEX idx_operation_batch ON dispense_operations(batch_id);
+CREATE INDEX idx_batch_plate ON dispense_batches(plate_id);
+CREATE INDEX idx_batch_status ON dispense_batches(status);
