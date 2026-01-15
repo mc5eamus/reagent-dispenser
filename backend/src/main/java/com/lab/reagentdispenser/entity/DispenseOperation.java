@@ -37,6 +37,10 @@ public class DispenseOperation {
 	@NotNull(message = "Reagent is required")
 	private Reagent reagent;
 
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "batch_id")
+	private DispenseBatch batch;
+
 	@Min(value = 0, message = "Volume dispensed must be positive")
 	@Column(name = "volume_dispensed", nullable = false)
 	private Double volumeDispensed;

@@ -1,5 +1,8 @@
 package com.lab.reagentdispenser.controller;
 
+import com.lab.reagentdispenser.dto.AddOperationToBatchRequestDTO;
+import com.lab.reagentdispenser.dto.CreateBatchRequestDTO;
+import com.lab.reagentdispenser.dto.DispenseBatchDTO;
 import com.lab.reagentdispenser.dto.DispenseOperationDTO;
 import com.lab.reagentdispenser.dto.DispenseRequestDTO;
 import com.lab.reagentdispenser.service.DispenseService;
@@ -45,18 +48,8 @@ public class DispenseController {
 
 	@PostMapping
 	public ResponseEntity<DispenseOperationDTO> createOperation(@Valid @RequestBody DispenseRequestDTO request) {
-		log.info("POST /api/dispense - Create new dispense operation");
+		log.info("POST /api/dispense - Create new dispense operation (not executed immediately)");
 		DispenseOperationDTO operation = dispenseService.createOperation(request);
-		
-		// Execute operation asynchronously
-		CompletableFuture.runAsync(() -> {
-			try {
-				dispenseService.executeOperation(operation.getId());
-			} catch (Exception e) {
-				log.error("Error executing operation asynchronously", e);
-			}
-		});
-		
 		return ResponseEntity.status(HttpStatus.CREATED).body(operation);
 	}
 
@@ -65,5 +58,55 @@ public class DispenseController {
 		log.info("POST /api/dispense/{}/execute - Execute operation", id);
 		DispenseOperationDTO operation = dispenseService.executeOperation(id);
 		return ResponseEntity.ok(operation);
+	}
+
+	// Batch operations endpoints
+
+	@PostMapping("/batch")
+	public ResponseEntity<DispenseBatchDTO> createBatch(@Valid @RequestBody CreateBatchRequestDTO request) {
+		log.info("POST /api/dispense/batch - Create new dispense batch");
+		DispenseBatchDTO batch = dispenseService.createBatch(request);
+		return ResponseEntity.status(HttpStatus.CREATED).body(batch);
+	}
+
+	@GetMapping("/batch")
+	public ResponseEntity<List<DispenseBatchDTO>> getAllBatches() {
+		log.info("GET /api/dispense/batch - Get all batches");
+		List<DispenseBatchDTO> batches = dispenseService.getAllBatches();
+		return ResponseEntity.ok(batches);
+	}
+
+	@GetMapping("/batch/{id}")
+	public ResponseEntity<DispenseBatchDTO> getBatchById(@PathVariable Long id) {
+		log.info("GET /api/dispense/batch/{} - Get batch by id", id);
+		DispenseBatchDTO batch = dispenseService.getBatchById(id);
+		return ResponseEntity.ok(batch);
+	}
+
+	@PostMapping("/batch/{id}/add-operation")
+	public ResponseEntity<DispenseBatchDTO> addOperationToBatch(
+			@PathVariable Long id,
+			@Valid @RequestBody AddOperationToBatchRequestDTO request) {
+		log.info("POST /api/dispense/batch/{}/add-operation - Add operation to batch", id);
+		DispenseBatchDTO batch = dispenseService.addOperationToBatch(id, request);
+		return ResponseEntity.ok(batch);
+	}
+
+	@PostMapping("/batch/{id}/execute")
+	public ResponseEntity<DispenseBatchDTO> executeBatch(@PathVariable Long id) {
+		log.info("POST /api/dispense/batch/{}/execute - Execute batch", id);
+		
+		// Execute batch asynchronously
+		CompletableFuture.runAsync(() -> {
+			try {
+				dispenseService.executeBatch(id);
+			} catch (Exception e) {
+				log.error("Error executing batch asynchronously", e);
+			}
+		});
+		
+		// Return the batch immediately (execution status will be sent via WebSocket)
+		DispenseBatchDTO batch = dispenseService.getBatchById(id);
+		return ResponseEntity.ok(batch);
 	}
 }

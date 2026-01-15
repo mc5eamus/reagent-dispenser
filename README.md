@@ -186,8 +186,15 @@ ReagentDispenser/
 - `GET /dispense/history` - Get operation history
 - `GET /dispense/{id}` - Get operation details
 - `GET /dispense/status/{status}` - Get operations by status
-- `POST /dispense` - Create and execute dispense operation
+- `POST /dispense` - Create dispense operation (not executed immediately)
 - `POST /dispense/{id}/execute` - Execute existing operation
+
+#### Batch Dispense Operations
+- `POST /dispense/batch` - Create new batch for a plate
+- `GET /dispense/batch` - Get all batches
+- `GET /dispense/batch/{id}` - Get batch details with operations
+- `POST /dispense/batch/{id}/add-operation` - Add operation to batch
+- `POST /dispense/batch/{id}/execute` - Execute all operations in batch sequentially
 
 ### WebSocket API
 
@@ -213,7 +220,9 @@ ReagentDispenser/
 
 **Message types:**
 - `OPERATION_CREATED` - New operation created
-- `OPERATION_STATUS_CHANGE` - Status changed
+- `OPERATION_STATUS_CHANGE` - Status changed (PENDING → IN_PROGRESS → COMPLETED/FAILED)
+- `BATCH_EXECUTION_STARTED` - Batch execution started
+- `BATCH_EXECUTION_COMPLETED` - Batch execution completed
 - `PLATE_UPDATED` - Plate information updated
 - `WELL_VOLUME_CHANGED` - Well volume changed
 
@@ -229,6 +238,47 @@ The application comes pre-loaded with sample data:
 - DMSO (10% stock, 1000 μL)
 - PBS Buffer (1X, 5000 μL)
 - Trypsin-EDTA (0.25%, 2000 μL)
+- FBS (100%, 3000 μL)
+- Penicillin-Streptomycin (100X, 1500 μL)
+
+**Operations:**
+- 5 sample dispense operations with various statuses
+
+## Batch Operations Workflow
+
+The application supports planning and executing dispense operations as a batch:
+
+1. **Create a batch** for a specific plate:
+   ```bash
+   POST /api/dispense/batch
+   {"plateBarcode": "PLATE-001"}
+   ```
+
+2. **Add operations** to the batch (one or more):
+   ```bash
+   POST /api/dispense/batch/{batchId}/add-operation
+   {
+     "wellPosition": "A1",
+     "reagentId": 1,
+     "volume": 50.0
+   }
+   ```
+
+3. **Execute the batch** - operations run sequentially with 0.5s delay between each:
+   ```bash
+   POST /api/dispense/batch/{batchId}/execute
+   ```
+
+4. **Monitor progress** via WebSocket messages (`/topic/dispense-status`):
+   - `BATCH_EXECUTION_STARTED` - Batch begins executing
+   - `OPERATION_STATUS_CHANGE` - Each operation updates in real-time
+   - `BATCH_EXECUTION_COMPLETED` - All operations completed
+
+**Benefits:**
+- Plan multiple dispense operations before execution
+- Sequential execution ensures controlled dispensing
+- Real-time monitoring via WebSocket
+- Track batch status (PLANNED → EXECUTING → COMPLETED/FAILED)
 - FBS (100%, 3000 μL)
 - Penicillin-Streptomycin (100X, 1500 μL)
 
@@ -333,8 +383,8 @@ export const environment = {
 - Create feature modules for plates, reagents, and dispense operations
 - Add data visualization (charts, graphs)
 - Implement audit logging
-- Add batch dispense operations
 - Support for different plate formats (384-well, custom)
+- Add batch operation templates for common workflows
 
 ## Troubleshooting
 
