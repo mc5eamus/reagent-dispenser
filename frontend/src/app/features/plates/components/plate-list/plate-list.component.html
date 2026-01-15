@@ -1,0 +1,61 @@
+<div class="plate-list-container">
+  <div class="header">
+    <h2>Laboratory Plates</h2>
+    <p class="subtitle">Manage and view all laboratory plates</p>
+  </div>
+
+  <div *ngIf="loading" class="loading">
+    <p>Loading plates...</p>
+  </div>
+
+  <div *ngIf="error" class="error-message">
+    <p>{{ error }}</p>
+    <button class="btn btn-primary" (click)="loadPlates()">Retry</button>
+  </div>
+
+  <div *ngIf="!loading && !error && plates.length === 0" class="no-data">
+    <p>No plates found.</p>
+  </div>
+
+  <div *ngIf="!loading && !error && plates.length > 0" class="plates-grid">
+    <div *ngFor="let plate of plates" class="plate-card" (click)="viewPlate(plate)">
+      <div class="plate-card-header">
+        <h3>{{ plate.barcode }}</h3>
+        <span class="plate-type-badge">{{ plate.plateType }}</span>
+      </div>
+      <div class="plate-card-body">
+        <div class="plate-info">
+          <div class="info-item">
+            <span class="label">Format:</span>
+            <span class="value">{{ plate.rows }} × {{ plate.columns }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Wells:</span>
+            <span class="value">{{ getWellCount(plate) }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Created:</span>
+            <span class="value">{{ plate.createdDate | date:'short' }}</span>
+          </div>
+        </div>
+        <div class="plate-preview">
+          <svg [attr.viewBox]="'0 0 ' + (plate.columns * 10 + 10) + ' ' + (plate.rows * 10 + 10)" 
+               class="mini-grid">
+            <g *ngFor="let row of [].constructor(plate.rows); let i = index">
+              <rect *ngFor="let col of [].constructor(plate.columns); let j = index"
+                    [attr.x]="j * 10 + 5"
+                    [attr.y]="i * 10 + 5"
+                    width="8"
+                    height="8"
+                    rx="1"
+                    class="mini-well"/>
+            </g>
+          </svg>
+        </div>
+      </div>
+      <div class="plate-card-footer">
+        <span class="view-link">View Details →</span>
+      </div>
+    </div>
+  </div>
+</div>

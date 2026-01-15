@@ -1,0 +1,66 @@
+<div class="plate-detail-container">
+  <div class="header">
+    <button class="btn btn-secondary" (click)="goBack()">← Back to Plates</button>
+    <div class="title-section" *ngIf="plate">
+      <h2>{{ plate.barcode }}</h2>
+      <span class="plate-type-badge">{{ plate.plateType }}</span>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="loading">
+    <p>Loading plate details...</p>
+  </div>
+
+  <div *ngIf="error" class="error-message">
+    <p>{{ error }}</p>
+    <button class="btn btn-primary" (click)="loadPlate(plate?.id || 0)">Retry</button>
+  </div>
+
+  <div *ngIf="!loading && !error && plate" class="content">
+    <div class="info-panel card">
+      <h3>Plate Information</h3>
+      <div class="info-grid">
+        <div class="info-item">
+          <span class="label">Barcode:</span>
+          <span class="value">{{ plate.barcode }}</span>
+        </div>
+        <div class="info-item">
+          <span class="label">Type:</span>
+          <span class="value">{{ plate.plateType }}</span>
+        </div>
+        <div class="info-item">
+          <span class="label">Format:</span>
+          <span class="value">{{ plate.rows }} rows × {{ plate.columns }} columns</span>
+        </div>
+        <div class="info-item">
+          <span class="label">Total Wells:</span>
+          <span class="value">{{ plate.rows * plate.columns }}</span>
+        </div>
+        <div class="info-item">
+          <span class="label">Created:</span>
+          <span class="value">{{ plate.createdDate | date:'medium' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-panel card">
+      <h3>Well Grid</h3>
+      <p class="instruction">Click on any well to dispense reagent</p>
+      
+      <app-well-grid
+        [plate]="plate"
+        [wells]="wells"
+        (wellSelected)="onWellSelected($event)">
+      </app-well-grid>
+    </div>
+  </div>
+
+  <app-dispense-dialog
+    *ngIf="showDispenseDialog && selectedWell && plate"
+    [well]="selectedWell"
+    [plate]="plate"
+    [reagents]="reagents"
+    (close)="onDispenseDialogClose()"
+    (dispenseComplete)="onDispenseComplete()">
+  </app-dispense-dialog>
+</div>

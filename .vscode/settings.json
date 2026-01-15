@@ -1,0 +1,9 @@
+{
+    "java.compile.nullAnalysis.mode": "automatic",
+    "chat.tools.terminal.autoApprove": {
+        "mvn test": true,
+        "npm run build": true,
+        "Test-Path": true,
+        "ForEach-Object": true
+    }
+}

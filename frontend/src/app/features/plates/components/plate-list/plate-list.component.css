@@ -1,0 +1,137 @@
+.plate-list-container {
+  padding: 20px;
+}
+
+.header {
+  margin-bottom: 30px;
+}
+
+.header h2 {
+  color: #667eea;
+  margin-bottom: 5px;
+}
+
+.subtitle {
+  color: #666;
+  margin: 0;
+}
+
+.plates-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+.plate-card {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.plate-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.plate-card-header {
+  padding: 15px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.plate-card-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.plate-type-badge {
+  background: rgba(255, 255, 255, 0.3);
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.plate-card-body {
+  padding: 15px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.plate-info {
+  flex: 1;
+}
+
+.info-item {
+  display: flex;
+  margin-bottom: 8px;
+}
+
+.info-item .label {
+  font-weight: 500;
+  color: #666;
+  min-width: 70px;
+}
+
+.info-item .value {
+  color: #333;
+}
+
+.plate-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 15px;
+}
+
+.mini-grid {
+  width: 100px;
+  height: auto;
+}
+
+.mini-well {
+  fill: #e0e0e0;
+  stroke: #999;
+  stroke-width: 0.5;
+}
+
+.plate-card-footer {
+  padding: 12px 15px;
+  background: #f8f9fa;
+  border-top: 1px solid #e0e0e0;
+  text-align: right;
+}
+
+.view-link {
+  color: #667eea;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.loading,
+.no-data {
+  text-align: center;
+  padding: 60px 20px;
+  color: #666;
+}
+
+.error-message {
+  background: #fee;
+  border: 1px solid #fcc;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.error-message p {
+  color: #c33;
+  margin-bottom: 15px;
+}

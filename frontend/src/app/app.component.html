@@ -1,0 +1,50 @@
+<div class="app-container">
+  <header>
+    <nav class="navbar">
+      <div class="container">
+        <h1>{{ title }}</h1>
+        <div class="ws-status">
+          <span [class.connected]="wsConnected" [class.disconnected]="!wsConnected">
+            {{ wsConnected ? '● Connected' : '○ Disconnected' }}
+          </span>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <main class="container">
+    <div class="welcome-card card">
+      <h2>Welcome to the Reagent Dispenser Application</h2>
+      <p>
+        This application provides an interface for managing lab reagent dispensing operations 
+        with 96-well plate (8×12 format) management.
+      </p>
+      <div class="features">
+        <h3>Features:</h3>
+        <ul>
+          <li>Manage laboratory plates with unique barcode identification</li>
+          <li>Track wells within plates using standard notation (A1-H12)</li>
+          <li>Manage reagent inventory and properties</li>
+          <li>Execute and monitor dispense operations in real-time</li>
+          <li>Track operation status lifecycle (PENDING → IN_PROGRESS → COMPLETED/FAILED)</li>
+        </ul>
+      </div>
+      <div class="status-info">
+        <p><strong>Backend API:</strong> http://localhost:8080</p>
+        <p><strong>WebSocket Status:</strong> 
+          <span [class.status-connected]="wsConnected" [class.status-disconnected]="!wsConnected">
+            {{ wsConnected ? 'Connected' : 'Disconnected' }}
+          </span>
+        </p>
+      </div>
+    </div>
+
+    <router-outlet></router-outlet>
+  </main>
+
+  <footer>
+    <div class="container">
+      <p>&copy; 2026 Reagent Dispenser Application - Spring Boot 2.5.5 + Angular 14.2</p>
+    </div>
+  </footer>
+</div>

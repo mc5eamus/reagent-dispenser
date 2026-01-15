@@ -1,0 +1,65 @@
+<div class="well-grid-container" *ngIf="plate">
+  <div class="grid-wrapper">
+    <!-- Column headers -->
+    <div class="column-headers">
+      <div class="corner-cell"></div>
+      <div class="column-header" *ngFor="let col of getColumns()">
+        {{ col + 1 }}
+      </div>
+    </div>
+
+    <!-- Rows with row labels and wells -->
+    <div class="grid-rows">
+      <div class="grid-row" *ngFor="let row of getRows(); let rowIndex = index">
+        <div class="row-label">{{ rowLabels[rowIndex] }}</div>
+        <div class="wells-row">
+          <div 
+            *ngFor="let col of getColumns(); let colIndex = index"
+            class="well-cell"
+            [class.has-content]="getWell(rowIndex, colIndex)?.volume && getWell(rowIndex, colIndex)!.volume! > 0"
+            [title]="getWellTooltip(getWell(rowIndex, colIndex), getWellPosition(rowIndex, colIndex))"
+            (click)="onWellClick(rowIndex, colIndex)">
+            <div class="well-circle">
+              <div 
+                class="well-fill"
+                [style.height.%]="getWellFillLevel(getWell(rowIndex, colIndex))"
+                [style.background-color]="getWellColor(getWellFillLevel(getWell(rowIndex, colIndex)))">
+              </div>
+            </div>
+            <div class="well-label">{{ getWellPosition(rowIndex, colIndex) }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="legend">
+    <h4>Fill Level Legend</h4>
+    <div class="legend-items">
+      <div class="legend-item">
+        <div class="legend-color" style="background: #ffffff; border: 1px solid #ccc;"></div>
+        <span>Empty (0%)</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background: #e3f2fd;"></div>
+        <span>Low (1-25%)</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background: #90caf9;"></div>
+        <span>Medium (26-50%)</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background: #42a5f5;"></div>
+        <span>High (51-75%)</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background: #1e88e5;"></div>
+        <span>Very High (76-90%)</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background: #1565c0;"></div>
+        <span>Full (>90%)</span>
+      </div>
+    </div>
+  </div>
+</div>

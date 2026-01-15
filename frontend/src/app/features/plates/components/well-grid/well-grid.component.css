@@ -1,0 +1,152 @@
+.well-grid-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.grid-wrapper {
+  display: inline-block;
+  background: #f8f9fa;
+  padding: 15px;
+  border-radius: 8px;
+}
+
+.column-headers {
+  display: flex;
+  margin-bottom: 5px;
+}
+
+.corner-cell {
+  width: 40px;
+  height: 30px;
+}
+
+.column-header {
+  width: 50px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  color: #667eea;
+  font-size: 14px;
+}
+
+.grid-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.grid-row {
+  display: flex;
+  align-items: center;
+}
+
+.row-label {
+  width: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  color: #667eea;
+  font-size: 16px;
+}
+
+.wells-row {
+  display: flex;
+  gap: 5px;
+}
+
+.well-cell {
+  width: 50px;
+  height: 50px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.1s;
+  position: relative;
+}
+
+.well-cell:hover {
+  transform: scale(1.1);
+  z-index: 10;
+}
+
+.well-circle {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: white;
+  border: 2px solid #ccc;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.well-cell:hover .well-circle {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2), inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.well-fill {
+  width: 100%;
+  transition: height 0.3s, background-color 0.3s;
+  border-radius: 0 0 50% 50%;
+}
+
+.well-label {
+  position: absolute;
+  bottom: -2px;
+  font-size: 9px;
+  color: #666;
+  font-weight: 500;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 1px 3px;
+  border-radius: 2px;
+}
+
+.well-cell.has-content .well-circle {
+  border-color: #1e88e5;
+}
+
+.legend {
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+}
+
+.legend h4 {
+  margin: 0 0 10px 0;
+  color: #333;
+  font-size: 14px;
+}
+
+.legend-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.legend-color {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid #ddd;
+}
+
+.legend-item span {
+  font-size: 13px;
+  color: #666;
+}

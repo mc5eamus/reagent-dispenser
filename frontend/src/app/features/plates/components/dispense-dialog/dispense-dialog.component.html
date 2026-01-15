@@ -1,0 +1,110 @@
+<div class="dialog-backdrop" (click)="onBackdropClick($event)">
+  <div class="dialog-container">
+    <div class="dialog-header">
+      <h3>Dispense Reagent</h3>
+      <button class="close-btn" (click)="onClose()" [disabled]="processing">&times;</button>
+    </div>
+
+    <div class="dialog-body">
+      <div class="well-info">
+        <h4>Target Well</h4>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="label">Position:</span>
+            <span class="value">{{ well.position }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Current Volume:</span>
+            <span class="value">{{ well.volume?.toFixed(1) || '0.0' }} μL</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Max Capacity:</span>
+            <span class="value">{{ well.maxVolume.toFixed(1) }} μL</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Available Space:</span>
+            <span class="value available">{{ getAvailableVolume().toFixed(1) }} μL</span>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="success" class="success-message">
+        <p>✓ Dispense operation started successfully!</p>
+        <p class="sub">Monitor progress on the operations page.</p>
+      </div>
+
+      <div *ngIf="error" class="error-message">
+        <p>{{ error }}</p>
+      </div>
+
+      <form [formGroup]="dispenseForm" (ngSubmit)="onSubmit()" *ngIf="!success">
+        <div class="form-group">
+          <label for="reagentId">Select Reagent *</label>
+          <select 
+            id="reagentId" 
+            formControlName="reagentId"
+            [class.invalid]="dispenseForm.get('reagentId')?.invalid && dispenseForm.get('reagentId')?.touched">
+            <option value="">-- Choose a reagent --</option>
+            <option *ngFor="let reagent of reagents" [value]="reagent.id">
+              {{ reagent.name }} 
+              ({{ reagent.concentration || 'N/A' }}, Stock: {{ reagent.stockVolume.toFixed(1) }} {{ reagent.unit }})
+            </option>
+          </select>
+          <div class="error" *ngIf="dispenseForm.get('reagentId')?.invalid && dispenseForm.get('reagentId')?.touched">
+            Please select a reagent
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="volume">Volume (μL) *</label>
+          <input 
+            type="number" 
+            id="volume" 
+            formControlName="volume"
+            step="0.1"
+            min="0.1"
+            [max]="getAvailableVolume()"
+            placeholder="Enter volume"
+            [class.invalid]="dispenseForm.get('volume')?.invalid && dispenseForm.get('volume')?.touched">
+          <div class="volume-info">
+            <span>Min: 0.1 μL</span>
+            <span>Max: {{ getAvailableVolume().toFixed(1) }} μL</span>
+          </div>
+          <div class="error" *ngIf="dispenseForm.get('volume')?.invalid && dispenseForm.get('volume')?.touched">
+            <span *ngIf="dispenseForm.get('volume')?.errors?.['required']">Volume is required</span>
+            <span *ngIf="dispenseForm.get('volume')?.errors?.['min']">Volume must be at least 0.1 μL</span>
+            <span *ngIf="dispenseForm.get('volume')?.errors?.['max']">
+              Volume exceeds available space ({{ getAvailableVolume().toFixed(1) }} μL)
+            </span>
+          </div>
+        </div>
+
+        <div class="summary" *ngIf="dispenseForm.valid">
+          <h4>Operation Summary</h4>
+          <p>
+            <strong>{{ getSelectedReagent()?.name }}</strong> 
+            ({{ dispenseForm.value.volume }} μL) 
+            will be dispensed into well <strong>{{ well.position }}</strong>
+          </p>
+          <p class="result">
+            New volume: {{ ((well.volume || 0) + +dispenseForm.value.volume).toFixed(1) }} μL / {{ well.maxVolume.toFixed(1) }} μL
+          </p>
+        </div>
+      </form>
+    </div>
+
+    <div class="dialog-footer" *ngIf="!success">
+      <button type="button" class="btn btn-secondary" (click)="onClose()" [disabled]="processing">
+        Cancel
+      </button>
+      <button 
+        type="submit" 
+        class="btn btn-primary" 
+        (click)="onSubmit()"
+        [disabled]="dispenseForm.invalid || processing">
+        <span *ngIf="!processing">Dispense</span>
+        <span *ngIf="processing">Dispensing...</span>
+      </button>
+    </div>
+  </div>
+</div>
