@@ -29,8 +29,8 @@
       </div>
 
       <div *ngIf="success" class="success-message">
-        <p>✓ Dispense operation started successfully!</p>
-        <p class="sub">Monitor progress on the operations page.</p>
+        <p>✓ Operation added to batch plan!</p>
+        <p class="sub">Continue adding more operations or execute the batch.</p>
       </div>
 
       <div *ngIf="error" class="error-message">
@@ -94,16 +94,15 @@
     </div>
 
     <div class="dialog-footer" *ngIf="!success">
-      <button type="button" class="btn btn-secondary" (click)="onClose()" [disabled]="processing">
+      <button type="button" class="btn btn-secondary" (click)="onClose()">
         Cancel
       </button>
       <button 
         type="submit" 
         class="btn btn-primary" 
         (click)="onSubmit()"
-        [disabled]="dispenseForm.invalid || processing">
-        <span *ngIf="!processing">Dispense</span>
-        <span *ngIf="processing">Dispensing...</span>
+        [disabled]="dispenseForm.invalid">
+        Add to Plan
       </button>
     </div>
   </div>

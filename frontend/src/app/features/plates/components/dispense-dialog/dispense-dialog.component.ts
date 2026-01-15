@@ -2,8 +2,7 @@ import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Well, Plate } from '../../../../shared/models/plate.model';
 import { Reagent } from '../../../../shared/models/reagent.model';
-import { DispenseService } from '../../../../core/services/dispense.service';
-import { DispenseRequest } from '../../../../shared/models/dispense-operation.model';
+import { PlannedOperation, PlannedOperationStatus } from '../../../../shared/models/planned-operation.model';
 
 @Component({
   selector: 'app-dispense-dialog',
@@ -15,17 +14,13 @@ export class DispenseDialogComponent implements OnInit {
   @Input() plate!: Plate;
   @Input() reagents: Reagent[] = [];
   @Output() close = new EventEmitter<void>();
-  @Output() dispenseComplete = new EventEmitter<void>();
+  @Output() operationPlanned = new EventEmitter<PlannedOperation>();
 
   dispenseForm!: FormGroup;
-  processing = false;
   error: string | null = null;
   success = false;
 
-  constructor(
-    private fb: FormBuilder,
-    private dispenseService: DispenseService
-  ) {}
+  constructor(private fb: FormBuilder) {}
 
   ngOnInit(): void {
     this.initForm();
@@ -61,39 +56,42 @@ export class DispenseDialogComponent implements OnInit {
       return;
     }
 
-    this.processing = true;
     this.error = null;
 
-    const request: DispenseRequest = {
-      plateBarcode: this.plate.barcode,
+    const reagentId = +this.dispenseForm.value.reagentId;
+    const reagent = this.reagents.find(r => r.id === reagentId);
+
+    const plannedOperation: PlannedOperation = {
+      id: this.generateUUID(),
       wellPosition: this.well.position,
-      reagentId: +this.dispenseForm.value.reagentId,
-      volume: +this.dispenseForm.value.volume
+      wellId: this.well.id,
+      reagentId: reagentId,
+      reagentName: reagent?.name,
+      volume: +this.dispenseForm.value.volume,
+      status: PlannedOperationStatus.PLANNED
     };
 
-    this.dispenseService.createOperation(request).subscribe({
-      next: (operation) => {
-        console.log('Dispense operation created:', operation);
-        this.success = true;
-        this.processing = false;
-        
-        // Auto-close after 2 seconds
-        setTimeout(() => {
-          this.dispenseComplete.emit();
-        }, 2000);
-      },
-      error: (err) => {
-        this.error = err.error?.message || 'Failed to dispense reagent: ' + err.message;
-        this.processing = false;
-        console.error('Dispense error:', err);
-      }
+    this.success = true;
+    
+    // Emit the planned operation
+    this.operationPlanned.emit(plannedOperation);
+    
+    // Auto-close after 1 second
+    setTimeout(() => {
+      this.close.emit();
+    }, 1000);
+  }
+
+  private generateUUID(): string {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      const r = Math.random() * 16 | 0;
+      const v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
     });
   }
 
   onClose(): void {
-    if (!this.processing) {
-      this.close.emit();
-    }
+    this.close.emit();
   }
 
   onBackdropClick(event: MouseEvent): void {

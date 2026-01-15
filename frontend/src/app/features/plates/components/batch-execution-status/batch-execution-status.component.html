@@ -1,0 +1,48 @@
+<div class="batch-execution-status" *ngIf="operations.length > 0">
+  <div class="status-header">
+    <h4>Batch Execution Progress</h4>
+    <div class="status-badge" [class.executing]="isExecuting" [class.completed]="!isExecuting && completedOperations === totalOperations">
+      {{ statusMessage }}
+    </div>
+  </div>
+
+  <div class="progress-section">
+    <div class="progress-bar-container">
+      <div class="progress-bar" [style.width.%]="progressPercentage"></div>
+    </div>
+    <div class="progress-text">
+      <span class="completed">{{ completedOperations }} completed</span>
+      <span class="failed" *ngIf="failedOperations > 0">{{ failedOperations }} failed</span>
+      <span class="total">{{ progressPercentage }}%</span>
+    </div>
+  </div>
+
+  <div class="current-operation" *ngIf="executingOperation">
+    <div class="current-label">
+      <span class="spinner">⟳</span>
+      Currently executing:
+    </div>
+    <div class="current-details">
+      <strong>{{ executingOperation.wellPosition }}</strong>
+      <span class="separator">→</span>
+      <span>{{ executingOperation.reagentName }}</span>
+      <span class="separator">•</span>
+      <span>{{ executingOperation.volume.toFixed(1) }} μL</span>
+    </div>
+  </div>
+
+  <div class="summary-stats">
+    <div class="stat">
+      <span class="stat-number">{{ totalOperations }}</span>
+      <span class="stat-label">Total</span>
+    </div>
+    <div class="stat success">
+      <span class="stat-number">{{ completedOperations }}</span>
+      <span class="stat-label">Completed</span>
+    </div>
+    <div class="stat error" *ngIf="failedOperations > 0">
+      <span class="stat-number">{{ failedOperations }}</span>
+      <span class="stat-label">Failed</span>
+    </div>
+  </div>
+</div>

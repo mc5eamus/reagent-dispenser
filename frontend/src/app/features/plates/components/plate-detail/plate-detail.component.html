@@ -43,9 +43,30 @@
       </div>
     </div>
 
+    <app-batch-execution-status
+      [operations]="plannedOperations"
+      [isExecuting]="isExecutingBatch">
+    </app-batch-execution-status>
+
+    <app-batch-plan-summary
+      [operations]="plannedOperations"
+      (removeOperation)="onRemoveOperation($event)"
+      (clearAll)="onClearAllOperations()">
+    </app-batch-plan-summary>
+
+    <div class="batch-actions" *ngIf="plannedOperations.length > 0">
+      <button 
+        class="btn btn-primary btn-large" 
+        (click)="onExecuteBatch()"
+        [disabled]="!canExecuteBatch">
+        <span *ngIf="!isExecutingBatch">Execute Batch ({{ plannedOperations.length }} operations)</span>
+        <span *ngIf="isExecutingBatch">Executing Batch...</span>
+      </button>
+    </div>
+
     <div class="grid-panel card">
       <h3>Well Grid</h3>
-      <p class="instruction">Click on any well to dispense reagent</p>
+      <p class="instruction">Click on any well to add a dispense operation to the batch</p>
       
       <app-well-grid
         [plate]="plate"
@@ -61,6 +82,6 @@
     [plate]="plate"
     [reagents]="reagents"
     (close)="onDispenseDialogClose()"
-    (dispenseComplete)="onDispenseComplete()">
+    (operationPlanned)="onOperationPlanned($event)">
   </app-dispense-dialog>
 </div>

@@ -3,9 +3,11 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { PlateService } from '../../../../core/services/plate.service';
 import { WebSocketService } from '../../../../core/services/websocket.service';
+import { DispenseService } from '../../../../core/services/dispense.service';
 import { Plate, Well } from '../../../../shared/models/plate.model';
 import { Reagent } from '../../../../shared/models/reagent.model';
 import { ReagentService } from '../../../../core/services/reagent.service';
+import { PlannedOperation, PlannedOperationStatus } from '../../../../shared/models/planned-operation.model';
 
 @Component({
   selector: 'app-plate-detail',
@@ -21,6 +23,10 @@ export class PlateDetailComponent implements OnInit, OnDestroy {
   selectedWell: Well | null = null;
   showDispenseDialog = false;
   
+  // Batch planning state
+  plannedOperations: PlannedOperation[] = [];
+  isExecutingBatch = false;
+  
   private wsSubscription: Subscription | null = null;
 
   constructor(
@@ -28,7 +34,8 @@ export class PlateDetailComponent implements OnInit, OnDestroy {
     private router: Router,
     private plateService: PlateService,
     private reagentService: ReagentService,
-    private webSocketService: WebSocketService
+    private webSocketService: WebSocketService,
+    private dispenseService: DispenseService
   ) {}
 
   ngOnInit(): void {
@@ -118,10 +125,60 @@ export class PlateDetailComponent implements OnInit, OnDestroy {
     this.selectedWell = null;
   }
 
-  onDispenseComplete(): void {
-    this.showDispenseDialog = false;
-    this.selectedWell = null;
-    // Wells will be updated via WebSocket subscription
+  onOperationPlanned(operation: PlannedOperation): void {
+    this.plannedOperations.push(operation);
+    console.log('Operation added to plan:', operation);
+  }
+
+  onRemoveOperation(operationId: string): void {
+    this.plannedOperations = this.plannedOperations.filter(op => op.id !== operationId);
+  }
+
+  onClearAllOperations(): void {
+    this.plannedOperations = [];
+  }
+
+  onExecuteBatch(): void {
+    if (this.plannedOperations.length === 0 || !this.plate) {
+      return;
+    }
+
+    if (!confirm(`Execute ${this.plannedOperations.length} dispense operation(s)?`)) {
+      return;
+    }
+
+    this.isExecutingBatch = true;
+
+    // Create a copy of operations to execute
+    const operationsToExecute = this.plannedOperations.map(op => ({ ...op }));
+
+    this.dispenseService.executeBatch(this.plate.barcode, operationsToExecute, (operation) => {
+      // Update the operation status in the planned operations list
+      const index = this.plannedOperations.findIndex(op => op.id === operation.id);
+      if (index !== -1) {
+        this.plannedOperations[index] = { ...operation };
+      }
+    }).subscribe({
+      next: () => {
+        console.log('Batch execution completed');
+        this.isExecutingBatch = false;
+        // Reload wells to reflect changes
+        if (this.plate?.id) {
+          this.loadWells(this.plate.id);
+        }
+      },
+      error: (err) => {
+        console.error('Batch execution error:', err);
+        this.isExecutingBatch = false;
+        this.error = 'Batch execution encountered an error: ' + err.message;
+      }
+    });
+  }
+
+  get canExecuteBatch(): boolean {
+    return this.plannedOperations.length > 0 && 
+           !this.isExecutingBatch &&
+           this.plannedOperations.every(op => op.status === PlannedOperationStatus.PLANNED);
   }
 
   goBack(): void {
