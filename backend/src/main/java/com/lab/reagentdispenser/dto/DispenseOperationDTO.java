@@ -27,6 +27,8 @@ public class DispenseOperationDTO {
 
 	private String wellPosition;
 
+	private Double wellVolume; // Current volume in the well after dispense
+
 	@NotNull(message = "Reagent ID is required")
 	private Long reagentId;
 

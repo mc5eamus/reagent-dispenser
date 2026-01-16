@@ -122,8 +122,14 @@ export class PlateDetailComponent implements OnInit, OnDestroy {
                 }
               }
               
-              // Reload wells to reflect volume changes
-              this.loadWells(this.plate.id);
+              // Update well volume directly from the WebSocket payload
+              if (payload.wellVolume !== undefined && payload.wellPosition) {
+                const well = this.wells.find(w => w.position === payload.wellPosition);
+                if (well) {
+                  well.volume = payload.wellVolume;
+                  console.log(`Updated well ${payload.wellPosition} volume to ${payload.wellVolume}`);
+                }
+              }
             }
           } else if (message.type === 'BATCH_EXECUTION_COMPLETED') {
             const payload = message.payload as any;
