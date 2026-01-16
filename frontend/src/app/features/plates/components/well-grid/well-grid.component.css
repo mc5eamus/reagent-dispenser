@@ -88,6 +88,18 @@
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+.well-circle.well-filled {
+  border-color: #4caf50;
+  border-width: 3px;
+  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2), inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.well-circle.well-planned {
+  border-color: #ffc107;
+  border-width: 3px;
+  box-shadow: 0 0 0 2px rgba(255, 193, 7, 0.2), inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
 .well-cell:hover .well-circle {
   border-color: #667eea;
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2), inset 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -149,4 +161,21 @@
 .legend-item span {
   font-size: 13px;
   color: #666;
+}
+
+.legend-status-filled {
+  background: white;
+  border: 3px solid #4caf50 !important;
+  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+}
+
+.legend-status-planned {
+  background: white;
+  border: 3px solid #ffc107 !important;
+  box-shadow: 0 0 0 2px rgba(255, 193, 7, 0.2);
+}
+
+.legend-status-empty {
+  background: white;
+  border: 2px solid #ccc !important;
 }

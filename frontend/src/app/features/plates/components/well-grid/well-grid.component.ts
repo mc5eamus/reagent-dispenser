@@ -1,5 +1,6 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { Plate, Well } from '../../../../shared/models/plate.model';
+import { PlannedOperation } from '../../../../shared/models/planned-operation.model';
 
 @Component({
   selector: 'app-well-grid',
@@ -9,6 +10,7 @@ import { Plate, Well } from '../../../../shared/models/plate.model';
 export class WellGridComponent {
   @Input() plate: Plate | null = null;
   @Input() wells: Well[] = [];
+  @Input() plannedOperations: PlannedOperation[] = [];
   @Output() wellSelected = new EventEmitter<Well>();
 
   rowLabels: string[] = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P'];
@@ -56,5 +58,19 @@ export class WellGridComponent {
 
   getColumns(): number[] {
     return Array(this.plate?.columns || 12).fill(0).map((_, i) => i);
+  }
+
+  hasPlannedOperation(position: string): boolean {
+    return this.plannedOperations.some(op => op.wellPosition === position);
+  }
+
+  getWellBorderClass(well: Well | undefined, position: string): string {
+    if (well && well.volume && well.volume > 0) {
+      return 'well-filled'; // Green border for wells with volume
+    }
+    if (this.hasPlannedOperation(position)) {
+      return 'well-planned'; // Yellow border for wells with planned operations
+    }
+    return '';
   }
 }

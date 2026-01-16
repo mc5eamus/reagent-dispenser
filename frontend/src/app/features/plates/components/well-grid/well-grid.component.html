@@ -19,7 +19,7 @@
             [class.has-content]="getWell(rowIndex, colIndex)?.volume && getWell(rowIndex, colIndex)!.volume! > 0"
             [title]="getWellTooltip(getWell(rowIndex, colIndex), getWellPosition(rowIndex, colIndex))"
             (click)="onWellClick(rowIndex, colIndex)">
-            <div class="well-circle">
+            <div class="well-circle" [ngClass]="getWellBorderClass(getWell(rowIndex, colIndex), getWellPosition(rowIndex, colIndex))">
               <div 
                 class="well-fill"
                 [style.height.%]="getWellFillLevel(getWell(rowIndex, colIndex))"
@@ -34,7 +34,23 @@
   </div>
 
   <div class="legend">
-    <h4>Fill Level Legend</h4>
+    <h4>Well Status Legend</h4>
+    <div class="legend-items">
+      <div class="legend-item">
+        <div class="legend-color legend-status-filled"></div>
+        <span>Filled (contains liquid)</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color legend-status-planned"></div>
+        <span>Planned (pending operation)</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color legend-status-empty"></div>
+        <span>Empty (no operations)</span>
+      </div>
+    </div>
+    
+    <h4 style="margin-top: 15px;">Fill Level</h4>
     <div class="legend-items">
       <div class="legend-item">
         <div class="legend-color" style="background: #ffffff; border: 1px solid #ccc;"></div>
