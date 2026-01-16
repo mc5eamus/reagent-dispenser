@@ -101,10 +101,36 @@ export class PlateDetailComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (message) => {
           console.log('WebSocket update:', message);
-          // Reload wells when dispense operation completes
-          if (message.type === 'OPERATION_STATUS_CHANGE' && this.plate?.id) {
+          
+          if (!this.plate?.id) return;
+          
+          // Handle different message types
+          if (message.type === 'OPERATION_STATUS_CHANGE') {
             const payload = message.payload as any;
             if (payload.plateId === this.plate.id) {
+              // Update the planned operation status if it exists
+              const plannedOp = this.plannedOperations.find(
+                op => op.wellPosition === payload.wellPosition && 
+                     op.reagentId === payload.reagentId
+              );
+              if (plannedOp) {
+                if (payload.status === 'COMPLETED') {
+                  plannedOp.status = PlannedOperationStatus.COMPLETED;
+                } else if (payload.status === 'FAILED') {
+                  plannedOp.status = PlannedOperationStatus.FAILED;
+                  plannedOp.error = payload.errorMessage || 'Operation failed';
+                }
+              }
+              
+              // Reload wells to reflect volume changes
+              this.loadWells(this.plate.id);
+            }
+          } else if (message.type === 'BATCH_EXECUTION_COMPLETED') {
+            const payload = message.payload as any;
+            if (payload.plateId === this.plate.id) {
+              console.log('Batch execution completed');
+              this.isExecutingBatch = false;
+              // Final reload to ensure all changes are reflected
               this.loadWells(this.plate.id);
             }
           }
@@ -160,12 +186,8 @@ export class PlateDetailComponent implements OnInit, OnDestroy {
       }
     }).subscribe({
       next: () => {
-        console.log('Batch execution completed');
-        this.isExecutingBatch = false;
-        // Reload wells to reflect changes
-        if (this.plate?.id) {
-          this.loadWells(this.plate.id);
-        }
+        console.log('Batch execution request sent successfully');
+        // Note: isExecutingBatch will be set to false when BATCH_EXECUTION_COMPLETED is received
       },
       error: (err) => {
         console.error('Batch execution error:', err);

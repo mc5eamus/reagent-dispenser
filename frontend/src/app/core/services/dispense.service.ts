@@ -1,9 +1,15 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of, throwError } from 'rxjs';
-import { delay, switchMap, catchError } from 'rxjs/operators';
+import { delay, switchMap, catchError, tap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
-import { DispenseOperation, DispenseRequest } from '../../shared/models/dispense-operation.model';
+import { 
+  DispenseOperation, 
+  DispenseRequest, 
+  CreateBatchRequest, 
+  AddOperationToBatchRequest, 
+  DispenseBatch 
+} from '../../shared/models/dispense-operation.model';
 import { PlannedOperation, PlannedOperationStatus } from '../../shared/models/planned-operation.model';
 
 @Injectable({
@@ -34,63 +40,95 @@ export class DispenseService {
     return this.http.post<DispenseOperation>(`${this.apiUrl}/${id}/execute`, {});
   }
 
+  // Batch API methods
+  createBatch(request: CreateBatchRequest): Observable<DispenseBatch> {
+    return this.http.post<DispenseBatch>(`${this.apiUrl}/batch`, request);
+  }
+
+  addOperationToBatch(batchId: number, request: AddOperationToBatchRequest): Observable<DispenseBatch> {
+    return this.http.post<DispenseBatch>(`${this.apiUrl}/batch/${batchId}/add-operation`, request);
+  }
+
+  executeBatchById(batchId: number): Observable<DispenseBatch> {
+    return this.http.post<DispenseBatch>(`${this.apiUrl}/batch/${batchId}/execute`, {});
+  }
+
+  getBatchById(batchId: number): Observable<DispenseBatch> {
+    return this.http.get<DispenseBatch>(`${this.apiUrl}/batch/${batchId}`);
+  }
+
+  getAllBatches(): Observable<DispenseBatch[]> {
+    return this.http.get<DispenseBatch[]>(`${this.apiUrl}/batch`);
+  }
+
   /**
-   * Execute a batch of planned operations sequentially with a 0.5s delay between each operation
+   * Execute a batch of planned operations using the backend batch API
    * @param plateBarcode The barcode of the plate for all operations
    * @param operations Array of planned operations to execute
    * @param onProgress Callback function to report progress for each operation
-   * @returns Observable that emits when all operations are complete
+   * @returns Observable that emits when batch creation and execution is complete
    */
   executeBatch(
     plateBarcode: string,
     operations: PlannedOperation[],
     onProgress: (operation: PlannedOperation) => void
   ): Observable<void> {
-    return this.executeBatchSequentially(plateBarcode, operations, 0, onProgress);
+    // Create a batch first
+    return this.createBatch({ plateBarcode }).pipe(
+      switchMap(batch => {
+        console.log('Created batch:', batch);
+        // Add all operations to the batch sequentially
+        return this.addOperationsToBatch(batch.id, operations, 0).pipe(
+          switchMap(() => {
+            console.log('All operations added to batch, executing...');
+            // Mark all operations as EXECUTING
+            operations.forEach(op => {
+              op.status = PlannedOperationStatus.EXECUTING;
+              onProgress(op);
+            });
+            // Execute the batch
+            return this.executeBatchById(batch.id);
+          })
+        );
+      }),
+      switchMap(() => of(undefined)), // Return void
+      catchError((error) => {
+        console.error('Batch execution error:', error);
+        // Mark all operations as FAILED
+        operations.forEach(op => {
+          op.status = PlannedOperationStatus.FAILED;
+          op.error = error.error?.message || error.message || 'Batch execution failed';
+          onProgress(op);
+        });
+        return throwError(() => error);
+      })
+    );
   }
 
-  private executeBatchSequentially(
-    plateBarcode: string,
-    operations: PlannedOperation[],
-    index: number,
-    onProgress: (operation: PlannedOperation) => void
-  ): Observable<void> {
+  /**
+   * Recursively add operations to a batch
+   */
+  private addOperationsToBatch(
+    batchId: number, 
+    operations: PlannedOperation[], 
+    index: number
+  ): Observable<DispenseBatch> {
     if (index >= operations.length) {
-      return of(undefined);
+      // All operations added, return the batch
+      return this.getBatchById(batchId);
     }
 
     const operation = operations[index];
-    
-    // Update status to EXECUTING
-    operation.status = PlannedOperationStatus.EXECUTING;
-    onProgress(operation);
-
-    const request: DispenseRequest = {
-      plateBarcode: plateBarcode,
+    const request: AddOperationToBatchRequest = {
       wellPosition: operation.wellPosition,
       reagentId: operation.reagentId,
       volume: operation.volume
     };
 
-    // Execute the operation
-    return this.createOperation(request).pipe(
-      delay(500), // 0.5 second delay after execution
-      switchMap(() => {
-        // Update status to COMPLETED
-        operation.status = PlannedOperationStatus.COMPLETED;
-        onProgress(operation);
-        
+    return this.addOperationToBatch(batchId, request).pipe(
+      switchMap(batch => {
         // Continue with next operation
-        return this.executeBatchSequentially(plateBarcode, operations, index + 1, onProgress);
-      }),
-      catchError((error) => {
-        // Update status to FAILED
-        operation.status = PlannedOperationStatus.FAILED;
-        operation.error = error.error?.message || error.message || 'Operation failed';
-        onProgress(operation);
-        
-        // Continue with next operation despite error
-        return this.executeBatchSequentially(plateBarcode, operations, index + 1, onProgress);
+        return this.addOperationsToBatch(batchId, operations, index + 1);
       })
     );
   }
