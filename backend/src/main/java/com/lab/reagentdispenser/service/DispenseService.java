@@ -374,6 +374,7 @@ public class DispenseService {
 				.plateBarcode(operation.getPlate().getBarcode())
 				.wellId(operation.getWell().getId())
 				.wellPosition(operation.getWell().getPosition())
+				.wellVolume(operation.getWell().getVolume()) // Include current well volume
 				.reagentId(operation.getReagent().getId())
 				.reagentName(operation.getReagent().getName())
 				.volumeDispensed(operation.getVolumeDispensed())

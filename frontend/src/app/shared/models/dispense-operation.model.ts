@@ -4,6 +4,7 @@ export interface DispenseOperation {
   plateBarcode?: string;
   wellId: number;
   wellPosition?: string;
+  wellVolume?: number; // Current volume in the well after dispense
   reagentId: number;
   reagentName?: string;
   volumeDispensed: number;
