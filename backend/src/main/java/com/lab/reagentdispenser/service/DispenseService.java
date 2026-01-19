@@ -11,6 +11,7 @@ import com.lab.reagentdispenser.entity.DispenseOperation;
 import com.lab.reagentdispenser.entity.Plate;
 import com.lab.reagentdispenser.entity.Reagent;
 import com.lab.reagentdispenser.entity.Well;
+import com.lab.reagentdispenser.event.DispenseEvent;
 import com.lab.reagentdispenser.repository.DispenseBatchRepository;
 import com.lab.reagentdispenser.repository.DispenseOperationRepository;
 import com.lab.reagentdispenser.repository.PlateRepository;
@@ -18,6 +19,7 @@ import com.lab.reagentdispenser.repository.ReagentRepository;
 import com.lab.reagentdispenser.repository.WellRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,6 +39,7 @@ public class DispenseService {
 	private final WellRepository wellRepository;
 	private final ReagentRepository reagentRepository;
 	private final SimpMessagingTemplate messagingTemplate;
+	private final ApplicationEventPublisher eventPublisher;
 
 	public List<DispenseOperationDTO> getAllOperations() {
 		log.info("Retrieving all dispense operations");
@@ -309,7 +312,9 @@ public class DispenseService {
 		DispenseBatch completedBatch = batchRepository.save(batch);
 
 		log.info("Completed batch execution with id: {}, status: {}", batchId, batch.getStatus());
-		sendWebSocketUpdate("BATCH_EXECUTION_COMPLETED", convertBatchToDTO(completedBatch));
+		// Use event publisher to send BATCH_EXECUTION_COMPLETED AFTER transaction commits
+		// This ensures clients fetching wells after this message will see committed data
+		publishWebSocketEventAfterCommit("BATCH_EXECUTION_COMPLETED", convertBatchToDTO(completedBatch));
 
 		return convertBatchToDTO(completedBatch);
 	}
@@ -345,6 +350,9 @@ public class DispenseService {
 		sendWebSocketUpdate("OPERATION_STATUS_CHANGE", convertToDTO(operation));
 	}
 
+	/**
+	 * Send WebSocket update immediately (for non-transactional contexts).
+	 */
 	private void sendWebSocketUpdate(String messageType, DispenseBatchDTO batchDTO) {
 		WebSocketMessage message = WebSocketMessage.builder()
 				.type(messageType)
@@ -356,6 +364,9 @@ public class DispenseService {
 		log.debug("Sent WebSocket message: {}", messageType);
 	}
 
+	/**
+	 * Send WebSocket update immediately (for non-transactional contexts).
+	 */
 	private void sendWebSocketUpdate(String messageType, DispenseOperationDTO operationDTO) {
 		WebSocketMessage message = WebSocketMessage.builder()
 				.type(messageType)
@@ -365,6 +376,30 @@ public class DispenseService {
 
 		messagingTemplate.convertAndSend("/topic/dispense-status", message);
 		log.debug("Sent WebSocket message: {}", messageType);
+	}
+
+	/**
+	 * Publish an event that will send WebSocket update AFTER the transaction commits.
+	 * This ensures clients fetching data after receiving the message will see updated values.
+	 */
+	private void publishWebSocketEventAfterCommit(String messageType, DispenseBatchDTO batchDTO) {
+		eventPublisher.publishEvent(DispenseEvent.builder()
+				.messageType(messageType)
+				.payload(batchDTO)
+				.build());
+		log.debug("Published event for WebSocket message (after commit): {}", messageType);
+	}
+
+	/**
+	 * Publish an event that will send WebSocket update AFTER the transaction commits.
+	 * This ensures clients fetching data after receiving the message will see updated values.
+	 */
+	private void publishWebSocketEventAfterCommit(String messageType, DispenseOperationDTO operationDTO) {
+		eventPublisher.publishEvent(DispenseEvent.builder()
+				.messageType(messageType)
+				.payload(operationDTO)
+				.build());
+		log.debug("Published event for WebSocket message (after commit): {}", messageType);
 	}
 
 	private DispenseOperationDTO convertToDTO(DispenseOperation operation) {
