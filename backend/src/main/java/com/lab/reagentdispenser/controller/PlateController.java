@@ -16,7 +16,6 @@ import java.util.List;
 @RequestMapping("/api/plates")
 @RequiredArgsConstructor
 @Slf4j
-@CrossOrigin(origins = "http://localhost:4200")
 public class PlateController {
 
 	private final PlateService plateService;

@@ -1,0 +1,31 @@
+# Git
+**/.git
+**/.gitignore
+
+# Backend
+**/target/
+**/*.class
+**/*.jar
+**/*.log
+
+# Frontend
+**/node_modules/
+**/dist/
+**/.angular/
+
+# IDE
+**/.idea/
+**/.vscode/
+**/*.iml
+
+# OS
+**/.DS_Store
+**/Thumbs.db
+
+# Docker
+**/docker-compose*.yml
+**/*.Dockerfile
+
+# Documentation
+**/README.md
+**/*.md

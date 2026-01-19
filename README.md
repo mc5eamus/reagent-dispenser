@@ -86,6 +86,13 @@ ReagentDispenser/
 │   ├── package.json
 │   └── tsconfig.json
 │
+├── docker/                           # Docker deployment files
+│   ├── docker-compose.yml            # Container orchestration
+│   ├── backend.Dockerfile            # Backend container build
+│   ├── frontend.Dockerfile           # Frontend container build
+│   ├── nginx.conf                    # Nginx reverse proxy config
+│   └── .dockerignore                 # Docker build exclusions
+│
 └── .github/
     └── copilot-instructions.md       # AI-assisted development guidelines
 ```
@@ -98,6 +105,7 @@ ReagentDispenser/
 - **Maven 3.6+** (Maven 3.9.11 recommended)
 - **Node.js 16.x or 18.x** (with npm)
 - **Chrome** (for running frontend tests)
+- **Docker & Docker Compose** (for containerized deployment)
 
 ### Backend Setup
 
@@ -159,6 +167,71 @@ ReagentDispenser/
    ```
 
    Production files will be in `dist/reagent-dispenser-frontend/`
+
+### Docker Deployment
+
+Run both backend and frontend in Docker containers with a single command.
+
+1. **Navigate to docker directory:**
+   ```bash
+   cd docker
+   ```
+
+2. **Build and start containers:**
+   ```bash
+   docker-compose up --build
+   ```
+
+   This will:
+   - Build the Spring Boot backend (multi-stage Maven build)
+   - Build the Angular frontend (multi-stage Node/nginx build)
+   - Start both containers on a shared network
+
+3. **Access the application:**
+   - **Frontend:** http://localhost:4200
+   - **Backend API:** http://localhost:8080
+   - **H2 Console:** http://localhost:4200/h2-console (proxied through nginx)
+
+4. **Stop containers:**
+   ```bash
+   docker-compose down
+   ```
+
+5. **Rebuild after code changes:**
+   ```bash
+   docker-compose up --build
+   ```
+
+#### Docker Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     Docker Network                           │
+│                                                              │
+│  ┌──────────────────┐        ┌────────────────────────┐     │
+│  │  frontend:80     │        │  backend:8080          │     │
+│  │  (nginx)         │───────▶│  (Spring Boot)         │     │
+│  │                  │  proxy │                        │     │
+│  │  Static Angular  │        │  REST API + WebSocket  │     │
+│  │  + nginx proxy   │        │  H2 In-Memory DB       │     │
+│  └──────────────────┘        └────────────────────────┘     │
+│         │                                                    │
+└─────────│────────────────────────────────────────────────────┘
+          │
+    Exposed: 4200 (mapped to nginx port 80)
+```
+
+- **Frontend container**: Serves Angular static files via nginx, proxies `/api/*` and `/ws` requests to backend
+- **Backend container**: Runs Spring Boot with embedded H2 database (data resets on container restart)
+
+#### Environment Variables
+
+The backend accepts the following environment variables (set in `docker-compose.yml`):
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `APP_CORS_ALLOWED_ORIGINS` | `http://localhost:4200` | Comma-separated list of allowed CORS origins |
+| `SPRING_PROFILES_ACTIVE` | - | Spring profile to activate |
 
 ## API Documentation
 

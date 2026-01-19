@@ -15,7 +15,6 @@ import java.util.List;
 @RequestMapping("/api/reagents")
 @RequiredArgsConstructor
 @Slf4j
-@CrossOrigin(origins = "http://localhost:4200")
 public class ReagentController {
 
 	private final ReagentService reagentService;

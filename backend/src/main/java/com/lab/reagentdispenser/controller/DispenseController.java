@@ -20,7 +20,6 @@ import java.util.concurrent.CompletableFuture;
 @RequestMapping("/api/dispense")
 @RequiredArgsConstructor
 @Slf4j
-@CrossOrigin(origins = "http://localhost:4200")
 public class DispenseController {
 
 	private final DispenseService dispenseService;
