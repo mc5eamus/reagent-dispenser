@@ -25,4 +25,7 @@ public class WellDTO {
 	private Double volume;
 
 	private Double maxVolume;
+
+	// Number of dispense operations performed on this well
+	private Integer operationCount;
 }

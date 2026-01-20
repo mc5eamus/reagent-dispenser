@@ -13,4 +13,7 @@ public interface DispenseOperationRepository extends JpaRepository<DispenseOpera
 	List<DispenseOperation> findByPlate(Plate plate);
 	
 	List<DispenseOperation> findByStatus(DispenseOperation.OperationStatus status);
+	
+	// Used for N+1 query pattern - fetches all operations for a single well
+	List<DispenseOperation> findByWellId(Long wellId);
 }

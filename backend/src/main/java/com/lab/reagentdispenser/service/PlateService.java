@@ -4,6 +4,7 @@ import com.lab.reagentdispenser.dto.PlateDTO;
 import com.lab.reagentdispenser.dto.WellDTO;
 import com.lab.reagentdispenser.entity.Plate;
 import com.lab.reagentdispenser.entity.Well;
+import com.lab.reagentdispenser.repository.DispenseOperationRepository;
 import com.lab.reagentdispenser.repository.PlateRepository;
 import com.lab.reagentdispenser.repository.WellRepository;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -22,12 +24,47 @@ public class PlateService {
 
 	private final PlateRepository plateRepository;
 	private final WellRepository wellRepository;
+	private final DispenseOperationRepository dispenseOperationRepository;
 
+	/**
+	 * Retrieves all plates with their wells and operation counts.
+	 * Note: This implementation intentionally uses an inefficient pattern
+	 * that triggers N+1 queries for demonstration purposes.
+	 */
+	@Transactional
 	public List<PlateDTO> getAllPlates() {
-		log.info("Retrieving all plates");
-		return plateRepository.findAll().stream()
-				.map(this::convertToDTO)
-				.collect(Collectors.toList());
+		log.info("Retrieving all plates with wells and operation counts");
+		
+		List<Plate> plates = plateRepository.findAll();
+		List<PlateDTO> plateDTOs = new ArrayList<>();
+		
+		// N+1 Issue #1: For each plate, we access the lazy-loaded wells collection
+		// This triggers a separate SELECT query for each plate's wells
+		for (Plate plate : plates) {
+			PlateDTO plateDTO = convertToDTO(plate);
+			
+			// Accessing plate.getWells() triggers lazy loading - one query per plate
+			List<Well> wells = plate.getWells();
+			List<WellDTO> wellDTOs = new ArrayList<>();
+			
+			// N+1 Issue #2: For each well, we query the dispense operations
+			// This triggers a separate SELECT query for each well's operation count
+			for (Well well : wells) {
+				WellDTO wellDTO = convertWellToDTO(well);
+				
+				// Query operation count for each well individually - very inefficient!
+				int operationCount = dispenseOperationRepository.findByWellId(well.getId()).size();
+				wellDTO.setOperationCount(operationCount);
+				
+				wellDTOs.add(wellDTO);
+			}
+			
+			plateDTO.setWells(wellDTOs);
+			plateDTOs.add(plateDTO);
+		}
+		
+		log.info("Retrieved {} plates with nested well data", plateDTOs.size());
+		return plateDTOs;
 	}
 
 	public PlateDTO getPlateById(Long id) {
