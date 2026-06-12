@@ -511,6 +511,8 @@ For issues or questions, refer to:
 - Angular Documentation: https://v14.angular.io/docs
 - Project guidelines: `.github/copilot-instructions.md`
 
+## Observability
+yet to be impelemented, need a plan
 ---
 
 **Version:** 0.1.0  
